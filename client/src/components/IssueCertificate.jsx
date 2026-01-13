@@ -25,10 +25,12 @@ function IssueCertificate({ web3 }) {
   };
 
   const uploadToIPFS = async (data) => {
-    // Placeholder for IPFS upload - in production, this should use a real IPFS service
-    // For now, we'll simulate by creating a hash from the data
+    // DEVELOPMENT ONLY: This is a simulated IPFS hash for testing
+    // In production, integrate with a real IPFS service (e.g., Infura, Pinata)
+    // or use the server API endpoint for actual IPFS uploads
     const jsonString = JSON.stringify(data);
     const simulatedHash = 'Qm' + btoa(jsonString).substring(0, 44);
+    console.warn('Using simulated IPFS hash:', simulatedHash);
     return simulatedHash;
   };
 

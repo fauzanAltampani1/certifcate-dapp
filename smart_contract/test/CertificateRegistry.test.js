@@ -28,9 +28,10 @@ describe("CertificateRegistry", function () {
 
   describe("Issuer Management", function () {
     it("Should allow admin to authorize issuer", async function () {
-      await expect(certificateRegistry.authorizeIssuer(issuer.address))
+      const tx = await certificateRegistry.authorizeIssuer(issuer.address);
+      await expect(tx)
         .to.emit(certificateRegistry, "IssuerAuthorized")
-        .withArgs(issuer.address, await getTimestamp());
+        .withArgs(issuer.address, (await ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
       expect(await certificateRegistry.isAuthorizedIssuer(issuer.address)).to.be.true;
     });
@@ -44,9 +45,10 @@ describe("CertificateRegistry", function () {
     it("Should allow admin to revoke issuer", async function () {
       await certificateRegistry.authorizeIssuer(issuer.address);
       
-      await expect(certificateRegistry.revokeIssuer(issuer.address))
+      const tx = await certificateRegistry.revokeIssuer(issuer.address);
+      await expect(tx)
         .to.emit(certificateRegistry, "IssuerRevoked")
-        .withArgs(issuer.address, await getTimestamp());
+        .withArgs(issuer.address, (await ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
       expect(await certificateRegistry.isAuthorizedIssuer(issuer.address)).to.be.false;
     });
@@ -66,11 +68,10 @@ describe("CertificateRegistry", function () {
     it("Should allow authorized issuer to issue certificate", async function () {
       const ipfsHash = "QmTest123";
       
-      await expect(
-        certificateRegistry.connect(issuer).issueCertificate(recipient.address, ipfsHash)
-      )
+      const tx = await certificateRegistry.connect(issuer).issueCertificate(recipient.address, ipfsHash);
+      await expect(tx)
         .to.emit(certificateRegistry, "CertificateIssued")
-        .withArgs(1, issuer.address, recipient.address, ipfsHash, await getTimestamp());
+        .withArgs(1, issuer.address, recipient.address, ipfsHash, (await ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
       const cert = await certificateRegistry.getCertificate(1);
       expect(cert.id).to.equal(1);
@@ -132,11 +133,10 @@ describe("CertificateRegistry", function () {
     it("Should allow issuer to revoke certificate", async function () {
       const reason = "No longer valid";
       
-      await expect(
-        certificateRegistry.connect(issuer).revokeCertificate(1, reason)
-      )
+      const tx = await certificateRegistry.connect(issuer).revokeCertificate(1, reason);
+      await expect(tx)
         .to.emit(certificateRegistry, "CertificateRevoked")
-        .withArgs(1, issuer.address, reason, await getTimestamp());
+        .withArgs(1, issuer.address, reason, (await ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
       const cert = await certificateRegistry.getCertificate(1);
       expect(cert.isRevoked).to.be.true;
@@ -164,11 +164,4 @@ describe("CertificateRegistry", function () {
       ).to.be.revertedWith("Certificate already revoked");
     });
   });
-
-  // Helper function to get current block timestamp
-  async function getTimestamp() {
-    const blockNum = await ethers.provider.getBlockNumber();
-    const block = await ethers.provider.getBlock(blockNum);
-    return block.timestamp;
-  }
 });
